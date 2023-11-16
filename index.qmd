@@ -1,0 +1,71 @@
+---
+title: "Mongoose CRUD"
+---
+
+
+```{.js}
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+
+// Connect to MongoDB
+mongoose.connect('mongodb://host:port/database', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
+
+const connection = mongoose.connection;
+
+connection.once('open', () => {
+  console.log('MongoDB connected successfully!');
+});
+
+// Create a Mongoose model
+const Item = mongoose.model('Item', {
+  name: String,
+});
+
+// Create an Express app
+const app = express();
+
+// Use body-parser middleware
+app.use(bodyParser.json());
+
+// Create a route to get all items
+app.get('/items', async (req, res) => {
+  const items = await Item.find();
+  res.json(items);
+});
+
+// Create a route to create a new item
+app.post('/items', async (req, res) => {
+  const item = new Item({
+    name: req.body.name
+  });
+  await item.save();
+  res.json(item);
+});
+
+// Create a route to update an item
+app.put('/items/:id', async (req, res) => {
+  const item = await Item.findByIdAndUpdate(req.params.id, {
+    name: req.body.name
+  }, {
+    new: true
+  });
+  res.json(item);
+});
+
+// Create a route to delete an item
+app.delete('/items/:id', async (req, res) => {
+  await Item.findByIdAndRemove(req.params.id);
+  res.send('Deleted');
+});
+
+// Start the server on port 3000
+app.listen(3000, () => {
+  console.log('Server running on port 3000');
+});
+
+
+```
